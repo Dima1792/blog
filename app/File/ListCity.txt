@@ -1,0 +1,1 @@
+{"Москва":"?latitude=57.71&longitude=35.66","Петропавловск-Камчатский":"?latitude=53.01&longitude=158.39","Астрахань":"?latitude=46.21&longitude=48.02","Санкт-Питербург":"?latitude=59.57&longitude=30.19","NewYork":"?latitude=40.71&longitude=74.00","Берлин":"?latitude=52.52&longitude=13.41"}
