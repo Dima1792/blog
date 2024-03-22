@@ -15,7 +15,6 @@ class blogController extends Controller
     }
     public function web(Request $request, ArticleService $articleService)
     {
-
         $article = $this->getItemDTO();
         $article->author = $request->post('Author');
         $article->nameArticle = $request->post('nameArticle');

@@ -10,9 +10,10 @@ use Mockery\Exception;
 
 class testController extends Controller
 {
-    public function testAction( Request $request, CurrencyService $currencyService,string $currency=null)
+    public function testAction( Request $request, CurrencyService $currencyService, string $currency = null)
     {
         $currency ??= $request->post('currency', '');
+
         try {
             $result=$currencyService->getStringFromResult($currencyService->getCurrencies($currency));
 
@@ -21,7 +22,7 @@ class testController extends Controller
         } catch (ExceptionNotRegCurrency $exception){
             Log::error($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
             abort(404);
-            //include ((dirname(__DIR__,2).'/File/Error404.html'));
+
         } catch (\Throwable $exception){
             Log::error($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
             throw $exception;

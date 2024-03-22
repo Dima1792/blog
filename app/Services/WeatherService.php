@@ -6,9 +6,9 @@ namespace App\Services;
 use App\DTO\WeatherDTO\ItemDTO;
 use App\Exceptions\WeatherExceptionNotSpecifiedCity;
 use App\Exceptions\WetherExceptionsNotFoutCity;
-
 class WeatherService extends Service
 {
+    const FILECITUCONFIG = '/File/ListCity.txt';
     protected function getItemDTO(): ItemDTO
     {
         return new ItemDTO();
@@ -16,11 +16,9 @@ class WeatherService extends Service
 
     public function getWeatherFormAPI($city)
     {
-        $cities = [];
-        foreach (json_decode(file_get_contents(dirname(__DIR__, 1) . '/File/ListCity.txt')) as $key => $value) {
-            $cities[$key] = $value;
-        }
-        //echo $cities[$city];
+        $cities = json_decode(file_get_contents(
+            dirname(__DIR__, 1) . static::FILECITUCONFIG),
+            true);
         $item = $this->getItemDTO();
         if (empty($city)) {
             throw new WeatherExceptionNotSpecifiedCity('Криворукий пользователь не ввел название города');
@@ -28,31 +26,27 @@ class WeatherService extends Service
         if (!array_key_exists($city, $cities)) {
             throw new WetherExceptionsNotFoutCity('Криворукий пользователь не правильно ввел название города');
         }
-        $data = json_decode($this->getData(($city . 'weather.log'), sprintf("%s" . "%s" . "%s",
-            env('APY_Weater_BASA_URL'),
-            $cities[$city],
-            //$item->getCurrentParamsForAPI(), //запрос на фактическую погоду
-            $item->getHourlyParamsForAPI())),  //дергаем нужные параметры для прогнозов
-            true);
-        foreach ($item->weatherParamsHourly['unit'] as $params => $value) {
-            $item->weatherParamsHourly['unit'][$params] = $data['hourly_units'][$params];
-            if (!empty ($data['hourly'][$params])) {
-                $item->weatherParamsHourly['time'][$params] = $data['hourly'][$params];
-            }
-        }
+        $UrlRequestAPI =  sprintf(/*Basa URL*/ "%s". /*Координаты города*/"%s". /*Params Hourly*/ "%s",
+                    env('APY_Weater_BASA_URL'),
+                    $cities[$city],
+                    //$item->getCurrentParamsForAPI(),
+                    $item->getHourlyParamsForAPI());
+        $data = json_decode($this->getData($city . 'weather.log' , $UrlRequestAPI ) , true);
+        $item->weatherParamsHourly['unit'] = $data['hourly_units'];
+        $item->weatherParamsHourly['time'] = $data['hourly'];
 
         return $item;
     }
 
-    public function getStringFromResult($items, $time, $city)
+    public function getStringFromResult($items, $time, $city) : array
     {
         $count = 0;
-        $resultText[$count] = 'Погода для города ' . $city; /* название города */
+        $resultText[$count] = 'Погода для города ' . $city;
         foreach ($items->weatherParamsHourly['time'] as $param => $value) {
             $count++;
-            $resultText[$count] = $items->weatherParamsHourly['name'][$param] . " = ";/* название параметра */
-            $resultText[$count] .= "{$items->weatherParamsHourly['time'][$param][$time]} ";    /* значене переметра */
-            $resultText[$count] .= $items->weatherParamsHourly['unit'][$param]; /* единицы измерения */
+            $resultText[$count] = $items->weatherParamsHourly['name'][$param];
+            $resultText[$count] .= " = {$items->weatherParamsHourly['time'][$param][$time]} ";
+            $resultText[$count] .= $items->weatherParamsHourly['unit'][$param];
         }
 
         return $resultText;
